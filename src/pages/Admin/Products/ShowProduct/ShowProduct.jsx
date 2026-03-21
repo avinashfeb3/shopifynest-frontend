@@ -74,6 +74,7 @@ const ShowProduct = () => {
             <table className="border border-gray-300 w-full">
               <thead>
                 <tr className="bg-gray-100">
+                  <th className="px-3 py-2 text-left">Image</th>
                   <th className="px-3 py-2 text-left">Name</th>
                   <th className="px-3 py-2 text-left">Category</th>
                   <th className="px-3 py-2 text-left">Price</th>
@@ -93,14 +94,20 @@ const ShowProduct = () => {
                         key={`${product._id}`}
                         className="bg-white border-b border-gray-300"
                       >
-                          <td className="px-3 py-2 text-left">
-                            <div className="flex">
-                              {
-                                product.images && product.images.length > 0 && <img src={product.images[0]} alt={product.name} className="w-16 h-16 object-cover rounded mr-4" />
-                              }
-                            </div>
+                        <td className="px-3 py-2 text-left">
+                          <div className="flex">
+                            {
+                              product.gallery && product.gallery.length > 0 ? (
+                                <img src={product.gallery[0].url} alt={product.name} className="w-16 h-16 object-cover rounded mr-4" />
+                              ) : (
+                                <div className="w-16 h-16 bg-gray-200 flex items-center justify-center rounded mr-4">
+                                  <span className="text-gray-500 text-xs text-center font-medium">No Image</span>
+                                </div>
+                              )
+                            }
+                          </div>
 
-                          </td>
+                        </td>
                         <td className="px-3 py-2 text-left">{product.name}</td>
                         <td className="px-3 py-2 text-left">
                           {product.category?.name}
@@ -112,8 +119,8 @@ const ShowProduct = () => {
                           {product.quantity}
                         </td>
                         <td className="px-3 py-2 text-left">
-                          { product.isFeatured.toLowerCase()===
-                          "yes" ? (
+                          {product.isFeatured.toLowerCase() ===
+                            "yes" ? (
                             <p className="text-green-500">Yes</p>
                           ) : (
                             <p className="text-red-500">No</p>
@@ -121,11 +128,10 @@ const ShowProduct = () => {
                         </td>
                         <td className="px-3 py-2 text-left">
                           <span
-                            className={`inline-block rounded-md px-3 py-1 ${
-                              product.status.toLowerCase() === "active"
-                                ? "bg-green-600"
-                                : "bg-red-600"
-                            }`}
+                            className={`inline-block rounded-md px-3 py-1 ${product.status.toLowerCase() === "active"
+                              ? "bg-green-600"
+                              : "bg-red-600"
+                              }`}
                           >
                             <p className="text-white text-sm">
                               {product.status.toLowerCase() === "active"
