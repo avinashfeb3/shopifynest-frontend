@@ -16,20 +16,26 @@ const AdminLogin = () => {
 
   const onSubmit = async (formdata) => {
     try {
-      const { message, success, data } = await axios.post(
+      const { message, success, data, token } = await axios.post(
         "/admin/auth/login",
         formdata,
       );
       if (success) {
-        const token = data?.token;
+        const resolvedToken = data?.token || data?.accessToken || token;
+
+        if (!resolvedToken) {
+          toast.error("Login succeeded but token was not found in response");
+          return;
+        }
+
         const adminInfo = {
-          token,
+          token: resolvedToken,
         };
         localStorage.setItem(
           "shopifynest-admin-info",
           JSON.stringify(adminInfo),
         );
-        login(token);
+        login(resolvedToken);
         toast.success(message || "Login successful");
         navigate("/admin/dashboard");
       }
