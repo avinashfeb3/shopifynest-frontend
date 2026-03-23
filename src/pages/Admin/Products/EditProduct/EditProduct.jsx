@@ -14,13 +14,12 @@ const EditProduct = () => {
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [preview, setPreview] = useState([]);
-  const [images, setImages] = useState([]);
-  const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
-  const navigate = useNavigate();
-
+  const { id } = useParams();
+  const sizes = ['Xs', 'S', 'M', 'L', 'XL', 'XXL'];
+  
   // Handle Category Change
 
   const handleCategoryChange = async (categoryId) => {
@@ -33,20 +32,47 @@ const EditProduct = () => {
   };
 
   // Handle Image Change
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    const previewURLs = files.map((file) => URL.createObjectURL(file));
-    setImages(pre => [...pre, ...files]);
-    setPreview(pre => [...pre, ...previewURLs]);
-    e.target.value = "";
+  const handleImageChange = async (e) => {
+    try {
+        const formData = new FormData();
+        formData.append("images", e.target.files[0]);
+
+        const {message, data, success} = await axios.put(`/admin/products/update-gallery/${id}`, formData)
+        if(success){
+            toast.success(message || "Image uploaded successfully");
+            setProduct(data.product);
+        }
+    } catch (error) {
+        if (error?.response?.status === 400) {
+        toast.error(error?.response?.data?.message);
+      } else {
+        toast.error(error.message || "Failed to create product");
+      }
+    }
+      e.target.value = "";
   };
 
   // Handle Delete Image
-  const handleDelete = (index) => {
-    setImages(pre => pre.filter((_, i) => i !== index));
-    setPreview(pre => pre.filter((_, i) => i !== index));
+  const handleDelete = async (public_id) => {
+    const confirmDelete = confirm("Are you sure you want to delete this image?");
+    if(!confirmDelete){
+      return;
+    }
+    
+    try {
+      const {data, message, success} = await axios.delete(`/admin/products/delete-image/${id}/${public_id}`);
+      if(success){
+        toast.success(message || "Image deleted successfully");
+        setProduct(data.product);
+      }
+    } catch (error) {
+     if (error?.response?.status === 400) {
+        toast.error(error?.response?.data?.message);
+      } else {
+        toast.error(error.message || "Failed to create product");
+      } 
+    }
   };
-
   
   // save product
   const saveProduct = async (frmData) => {
@@ -111,7 +137,11 @@ const EditProduct = () => {
           discount_price: product.discountPrice || "",
           qty: product.quantity || "",
           sku: product.sku || "",
-          sizes: product.sizes ? product.sizes.join(",") : "",
+          sizes: Array.isArray(product.sizes)
+            ? product.sizes
+            : product.sizes
+              ? String(product.sizes).split(",")
+              : [],
           status: product.status?.toLowerCase?.() || "",
           category: categoryId,
           subcategory: subcategoryId,
@@ -270,8 +300,7 @@ const EditProduct = () => {
                             Price
                           </label>
                           <input
-                            type="number"
-                            step="0.01"
+                            type="text"
                             {...register("price", {
                               required: "Price field is required",
                             })}
@@ -294,8 +323,7 @@ const EditProduct = () => {
                             Discount Price
                           </label>
                           <input
-                            type="number"
-                            step="0.01"
+                            type="text"
                             className="border border-gray-200 px-3 py-2 mt-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-600"
                             placeholder="Enter Discount Price.."
                             {...register("discount_price")}
@@ -366,14 +394,24 @@ const EditProduct = () => {
                           (comma separated, e.g. S,M,L,XL)
                         </span>
                       </label>
-                      <input
-                        type="text"
-                        {...register("sizes", {
-                          required: "Sizes field is required",
-                        })}
-                        className="border border-gray-200 px-3 py-2 mt-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-600"
-                        placeholder="e.g. S,M,L,XL"
-                      />
+                          <div className="flex space-x-3 items-center">
+                      {
+                        sizes && sizes.map((size) => (
+                          <div key={size} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              value={size}
+                              {...register("sizes", {
+                                required: "Sizes field is required",
+                              })}
+                            />
+                            <label htmlFor={size} className="text-sm text-gray-900 ml-2">
+                              {size}
+                            </label>
+                          </div>
+                        ))
+                      }
+                      </div>
                       {errors.sizes && (
                         <p className="text-red-500 text-sm mt-1">
                           {errors.sizes.message}
@@ -406,8 +444,6 @@ const EditProduct = () => {
                       <div className="flex flex-col">
                         <input
                           type="file"
-                          multiple
-                          accept="image/*"
                           onChange={handleImageChange}
                           className="border border-gray-200 p-2 rounded"
                         />
@@ -426,7 +462,7 @@ const EditProduct = () => {
 
                               <button
                                 type="button"
-                                onClick={() => handleDelete(index)}
+                                onClick={() => handleDelete(image?.publicId)}
                                 className="absolute text-red-500 right-2 top-2 bg-white p-1 rounded-full shadow cursor-pointer hover:text-red-700"
                               >
                                 <FaTrashAlt />

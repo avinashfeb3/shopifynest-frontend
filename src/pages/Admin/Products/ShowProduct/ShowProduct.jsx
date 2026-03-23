@@ -6,6 +6,7 @@ import { AdminAuthContext } from "../../../../context/AdminAuth";
 import { FaPlus, FaRegTrashAlt } from "react-icons/fa";
 import { BsPencilSquare } from "react-icons/bs";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 
 const ShowProduct = () => {
   const { logout } = useContext(AdminAuthContext);
@@ -30,21 +31,31 @@ const ShowProduct = () => {
 
   // Delete Products API Section Start
   const deletedProducts = async (productId) => {
-    if (confirm("Are you sure you want to delete this product?")) {
-      try {
-        const { success, message, data } = await axios.delete(
-          `/admin/products/${productId}`,
-        );
-        if (success) {
-          toast.success(message);
-          getProducts();
-        }
-      } catch (err) {
-        if (err.status === 400) {
-          toast.error(err?.response?.data?.message);
-        } else {
-          console.log(err.message || "Something went wrong");
-        }
+    const result = await Swal.fire({
+      title: "Delete product?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+    try {
+      const { success, message, data } = await axios.delete(
+        `/admin/products/${productId}`,
+      );
+      if (success) {
+        toast.success(message);
+        setProducts((prev) => prev.filter((item) => item._id !== productId));
+      }
+    } catch (err) {
+      if (err.status === 400) {
+        toast.error(err?.response?.data?.message);
+      } else {
+        console.log(err.message || "Something went wrong");
       }
     }
   };
@@ -113,18 +124,22 @@ const ShowProduct = () => {
                           {product.category?.name}
                         </td>
                         <td className="px-3 py-2 text-left">
-                          ${product.price}
+                          ₹ {product.price}
                         </td>
                         <td className="px-3 py-2 text-left">
                           {product.quantity}
                         </td>
                         <td className="px-3 py-2 text-left">
-                          {product.isFeatured.toLowerCase() ===
-                            "yes" ? (
-                            <p className="text-green-500">Yes</p>
-                          ) : (
-                            <p className="text-red-500">No</p>
-                          )}
+                          <span
+                            className={`inline-block rounded-md px-3 py-1 ${product?.isFeatured?.toLowerCase() === "yes"
+                                ? "bg-green-600"
+                                : "bg-red-600"
+                              }`}
+                          >
+                            <p className="text-white text-sm">
+                              {product?.isFeatured?.toLowerCase() === "yes" ? "Yes" : "No"}
+                            </p>
+                          </span>
                         </td>
                         <td className="px-3 py-2 text-left">
                           <span

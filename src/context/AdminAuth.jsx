@@ -12,6 +12,7 @@ export const AdminAuthProvider = ({ children }) => {
     }
 
     const logout = () => {
+        sessionStorage.removeItem("shopifynest-admin-info");
         localStorage.removeItem("shopifynest-admin-info");
         setAdmin(null);
     }

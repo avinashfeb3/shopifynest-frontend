@@ -22,7 +22,8 @@ const CreateProduct = () => {
     formState: { errors },
   } = useForm();
   const navigate = useNavigate();
-
+  const sizes = ['Xs', 'S', 'M', 'L', 'XL', 'XXL'];
+  
   // Handle Category Change
 
   const handleCategoryChange = async (categoryId) => {
@@ -53,10 +54,12 @@ const CreateProduct = () => {
     try {
       setLoading(true);
       const formData = new FormData();
+      const normalizedPrice = String(frmData.price || "").replace(/[^\d.]/g, "");
+      const normalizedDiscountPrice = String(frmData.discount_price || "").replace(/[^\d.]/g, "");
       formData.append("name", frmData.name);
       formData.append("description", frmData.description || "");
-      formData.append("price", frmData.price);
-      formData.append("discount_price", frmData.discount_price || "");
+      formData.append("price", normalizedPrice);
+      formData.append("discount_price", normalizedDiscountPrice);
       formData.append("qty", frmData.qty);
       formData.append("sku", frmData.sku);
       formData.append("status", frmData.status || "inactive");
@@ -64,7 +67,9 @@ const CreateProduct = () => {
       formData.append("subcategory", frmData.subcategory || "");
       formData.append("brand", frmData.brand || "");
       formData.append("is_featured", frmData.is_featured || "no");
-      formData.append("sizes", frmData.sizes || "");
+      (Array.isArray(frmData.sizes) ? frmData.sizes : frmData.sizes ? [frmData.sizes] : []).forEach((size) => {
+        formData.append("sizes", size);
+      });
 
       images.forEach((image) => {
         formData.append("images", image, image.name);
@@ -230,8 +235,7 @@ const CreateProduct = () => {
                             Price
                           </label>
                           <input
-                            type="number"
-                            step="0.01"
+                            type="text"
                             {...register("price", {
                               required: "Price field is required",
                             })}
@@ -254,8 +258,7 @@ const CreateProduct = () => {
                             Discount Price
                           </label>
                           <input
-                            type="number"
-                            step="0.01"
+                            type="text"
                             className="border border-gray-200 px-3 py-2 mt-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-600"
                             placeholder="Enter Discount Price.."
                             {...register("discount_price")}
@@ -316,7 +319,7 @@ const CreateProduct = () => {
                     </div>
 
                     {/* Sizes */}
-                    <div className="flex flex-col">
+                  <div className="flex flex-col">
                       <label
                         htmlFor="sizes"
                         className="text-sm text-gray-900 mb-2"
@@ -326,14 +329,24 @@ const CreateProduct = () => {
                           (comma separated, e.g. S,M,L,XL)
                         </span>
                       </label>
-                      <input
-                        type="text"
-                        {...register("sizes", {
-                          required: "Sizes field is required",
-                        })}
-                        className="border border-gray-200 px-3 py-2 mt-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-600"
-                        placeholder="e.g. S,M,L,XL"
-                      />
+                          <div className="flex space-x-3 items-center">
+                      {
+                        sizes && sizes.map((size) => (
+                          <div key={size} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              value={size}
+                              {...register("sizes", {
+                                required: "Sizes field is required",
+                              })}
+                            />
+                            <label htmlFor={size} className="text-sm text-gray-900 ml-2">
+                              {size}
+                            </label>
+                          </div>
+                        ))
+                      }
+                      </div>
                       {errors.sizes && (
                         <p className="text-red-500 text-sm mt-1">
                           {errors.sizes.message}

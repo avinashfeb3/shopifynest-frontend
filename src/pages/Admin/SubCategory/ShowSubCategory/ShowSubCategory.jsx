@@ -11,6 +11,7 @@ import { AdminAuthContext } from "../../../../context/AdminAuth";
 const ShowSubCategory = () => {
     const { logout } = useContext(AdminAuthContext);
     const [subcategories, setSubCategories] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -44,6 +45,7 @@ const ShowSubCategory = () => {
       if (success && data) {
         const subCatList = Array.isArray(data) ? data : data.subcategories || [];
         setSubCategories(subCatList);
+        setSelectedIds([]);
       }
     } catch (err) {
       if (err.status === 400) {
@@ -77,6 +79,50 @@ const ShowSubCategory = () => {
   };
   // Delete Categories API Section End
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(subcategories.map((item) => item._id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const deleteSelectedSubCategories = async () => {
+    if (!selectedIds.length) {
+      toast.error("Please select at least one sub category");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete selected sub categories?")) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await Promise.all(
+        selectedIds.map((subCategoryId) =>
+          axios.delete(`/admin/sub-categories/${subCategoryId}`),
+        ),
+      );
+      toast.success("Selected sub categories deleted successfully");
+      getSubCategories();
+    } catch (err) {
+      if (err.status === 400) {
+        toast.error(err?.response?.data?.message);
+      } else {
+        console.log(err.message || "Something went wrong");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     getCategories();
     getSubCategories();
@@ -90,18 +136,39 @@ const ShowSubCategory = () => {
             <h2 className="text-xl font-semibold text-gray-700">
               All Sub Categories
             </h2>
-            <Link
-              to={`/admin/sub-categories/create`}
-              className="inline-flex items-center gap-2 rounded bg-green-600 px-4 py-1.5 text-white"
-            >
-              <FaPlus />
-              Create
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={deleteSelectedSubCategories}
+                disabled={loading || !selectedIds.length}
+                className="inline-flex items-center gap-2 rounded bg-red-600 px-4 py-1.5 text-white disabled:opacity-60"
+              >
+                <FaRegTrashAlt />
+                Bulk Delete
+              </button>
+              <Link
+                to={`/admin/sub-categories/create`}
+                className="inline-flex items-center gap-2 rounded bg-green-600 px-4 py-1.5 text-white"
+              >
+                <FaPlus />
+                Create
+              </Link>
+            </div>
           </div>
           <div className="w-full overflow-x-auto my-3 py-3">
             <table className="border border-gray-300 w-full">
               <thead>
                 <tr className="bg-gray-100">
+                  <th className="px-3 py-2 text-left">
+                    <input
+                      type="checkbox"
+                      onChange={handleSelectAll}
+                      checked={
+                        subcategories.length > 0 &&
+                        selectedIds.length === subcategories.length
+                      }
+                    />
+                  </th>
                   <th className="px-3 py-2 text-left">Category</th>
                   <th className="px-3 py-2 text-left">Sub Category</th>
                   <th className="px-3 py-2 text-left">Status</th>
@@ -118,6 +185,13 @@ const ShowSubCategory = () => {
                         key={`${subcategory._id}`}
                         className="bg-white border-b border-gray-300"
                       >
+                        <td className="px-3 py-2 text-left">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(subcategory._id)}
+                            onChange={() => handleSelectOne(subcategory._id)}
+                          />
+                        </td>
                         <td className="px-3 py-2 text-left">
                           {subcategory.category?.name || 
                            (subcategory.categoryId && getCategoryName(subcategory.categoryId)) || 

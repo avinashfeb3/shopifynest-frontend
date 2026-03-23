@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import HeroImg from "../../../assets/banner/banner.jpg";
 
 const Hero = () => {
   return (
@@ -25,7 +26,7 @@ const Hero = () => {
             {/* Right Box Section Start  */}
             <div className="relative order-1 lg:order-2">
               <img
-                src="https://res.cloudinary.com/dhlveqcny/image/upload/v1768368572/banner_lkbiln.jpg"
+                src={HeroImg}
                 alt="Banner Image"
                 className="rounded-2xl object-cover lg:h-75 h-56 sm:h-80 w-full"
               />

@@ -31,7 +31,7 @@ const AdminLogin = () => {
         const adminInfo = {
           token: resolvedToken,
         };
-        localStorage.setItem(
+        sessionStorage.setItem(
           "shopifynest-admin-info",
           JSON.stringify(adminInfo),
         );

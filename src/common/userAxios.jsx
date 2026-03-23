@@ -1,5 +1,5 @@
 import axios from "axios";
-import { adminToken } from "./config";
+// import { adminToken } from "./config";
 
 const normalizedBaseUrl = (
     import.meta.env.VITE_API_URL || import.meta.env.VITE_BASE_URL || ""
@@ -10,13 +10,13 @@ const instance = axios.create({
 })
 
 // Add Bearer Token
-instance.interceptors.request.use((config) => {
-    const token = adminToken();
-    if(token){
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-})
+// instance.interceptors.request.use((config) => {
+//     const token = adminToken();
+//     if(token){
+//         config.headers.Authorization = `Bearer ${token}`;
+//     }
+//     return config;
+// })
 
 
 // Modify response to return data directly
@@ -24,9 +24,9 @@ instance.interceptors.response.use((response) => {
     return response.data;
 }, (error) =>{
     if(error?.response?.status === 401){
-        sessionStorage.removeItem("shopifynest-admin-info");
-        localStorage.removeItem("shopifynest-admin-info");
-        window.location.href = "/admin/login";
+        // sessionStorage.removeItem("shopifynest-admin-info");
+        // localStorage.removeItem("shopifynest-admin-info");
+        // window.location.href = "/admin/login";
     }
     return Promise.reject(error);
 })

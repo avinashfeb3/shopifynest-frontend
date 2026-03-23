@@ -1,5 +1,10 @@
+const ADMIN_STORAGE_KEY = "shopifynest-admin-info";
+
 export const adminToken = () => {
-    const raw = localStorage.getItem("shopifynest-admin-info");
+    // Remove legacy persistent token if it exists.
+    localStorage.removeItem(ADMIN_STORAGE_KEY);
+
+    const raw = sessionStorage.getItem(ADMIN_STORAGE_KEY);
 
     if (!raw) {
         return null;
