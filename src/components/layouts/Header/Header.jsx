@@ -1,10 +1,34 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { IoCartOutline, IoMenu, IoClose } from "react-icons/io5";
-import { useState } from "react";
 import Logo from "../../../assets/logo/logo.png";
+import axios from "../../../common/userAxios";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [categories, setCategories] = useState([]);
+
+    // Fetch Featured Products from API Section Start
+    const getCategories = async () => {
+        try {
+            const { success, data } = await axios.get("/home/get-categories");
+            if (success && data) {
+                setCategories(Array.isArray(data) ? data : []);
+            } else {
+                setCategories([]);
+            }
+        } catch (error) {
+            console.log(error.message || "Failed to fetch categories");
+            setCategories([]);
+        }
+    }
+    // Fetch Featured Products from API Section End
+
+    // Fetch featured products on component mount Section Start
+    useEffect(() => {
+        getCategories();
+    }, []);
+    // Fetch featured products on component mount Section End
   return (
     <>
       <header className="sticky top-0 z-50 bg-white shadow-md">
@@ -27,15 +51,13 @@ const Header = () => {
             <Link to="/" className="hover:text-orange-500">
               Home
             </Link>
-            <Link to="/shop" className="hover:text-orange-500">
-              Mens
-            </Link>
-            <Link to="/shop" className="hover:text-orange-500">
-              Womens
-            </Link>
-            <Link to="/shop" className="hover:text-orange-500">
-              Kids
-            </Link>
+            {categories.map((category) => {
+              return (
+                <Link key={category._id || category.id} to={`/shop?category=${category._id}`} className="hover:text-orange-500">
+                  {category.name}
+                </Link>
+              );
+            })}
             <Link to="/cart" className="relative">
               <span className="bg-red-400 text-sm rounded-[50%] flex justify-center items-center text-white absolute left-2 w-6 h-6 -top-4.5">
                 0
