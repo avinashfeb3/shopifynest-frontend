@@ -2,33 +2,18 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { IoCartOutline, IoMenu, IoClose } from "react-icons/io5";
 import Logo from "../../../assets/logo/logo.png";
-import axios from "../../../common/userAxios";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCategoriesIfNeeded } from "../../../redux/slices/categorySlice";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [categories, setCategories] = useState([]);
+  const dispatch = useDispatch();
+  const categories = useSelector((state) => state.categories.items);
 
-    // Fetch Featured Products from API Section Start
-    const getCategories = async () => {
-        try {
-            const { success, data } = await axios.get("/home/get-categories");
-            if (success && data) {
-                setCategories(Array.isArray(data) ? data : []);
-            } else {
-                setCategories([]);
-            }
-        } catch (error) {
-            console.log(error.message || "Failed to fetch categories");
-            setCategories([]);
-        }
-    }
-    // Fetch Featured Products from API Section End
+  useEffect(() => {
+    dispatch(fetchCategoriesIfNeeded());
+  }, [dispatch]);
 
-    // Fetch featured products on component mount Section Start
-    useEffect(() => {
-        getCategories();
-    }, []);
-    // Fetch featured products on component mount Section End
   return (
     <>
       <header className="sticky top-0 z-50 bg-white shadow-md">

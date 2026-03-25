@@ -4,6 +4,8 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { IoIosArrowForward, IoMdClose } from "react-icons/io";
 import { FiFilter, FiPackage } from "react-icons/fi";
 import axios from "../../common/userAxios";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCategoriesIfNeeded } from "../../redux/slices/categorySlice";
 
 const Shop = () => {
   const location = useLocation();
@@ -17,7 +19,11 @@ const Shop = () => {
   const [brandChecked, setBrandChecked] = useState([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState("");
   const [loading, setLoading] = useState(false);
-  const [category, setCategory] = useState({});
+  const dispatch = useDispatch();
+  const categories = useSelector((state) => state.categories.items);
+  const categoryId = id || selectedCategoryId;
+  const category =
+    categories.find((item) => String(item._id || item.id) === String(categoryId)) || {};
 
   const priceRanges = [
     { id: "under-500", label: "Under Rs 500", min: 0, max: 500 },
@@ -97,33 +103,15 @@ const Shop = () => {
   // Fetch Featured Products from API Section End
 
   
-  // Fetch Sub Categories for single Product from API Section Start
-    const getCategory = async () => {
-    try {
-      const categoryId = id || selectedCategoryId;
-      if (!categoryId) {
-        setCategory({});
-        return;
-      }
-
-      const { success, data } = await axios.get(`/home/get-category/${categoryId}`);
-      if (success && data) {
-        setCategory(Array.isArray(data) ? data[0] || {} : data.category || data);
-      } else {
-        setCategory({});
-      }
-    } catch (error) {
-      console.log(error.message || "Failed to fetch featured products");
-      setCategory({});
-    }
-  }
-  // Fetch Sub Categories for single Product from API Section End
-
   const getSubCategories = async () => {
     try {
+      if (!categoryId) {
+        setSubcategories([]);
+        return;
+      }
       const { success, data } = await axios.get("/home/get-subcategories", {
         params: {
-          category_id: id || selectedCategoryId
+          category_id: categoryId
         }
       });
       if (success && data) {
@@ -151,15 +139,18 @@ const Shop = () => {
     }
   }
 
+  useEffect(() => {
+    dispatch(fetchCategoriesIfNeeded());
+  }, [dispatch]);
+
 
   useEffect(() => {
-    getCategory();
     getSubCategories();
     getbrands();
     setSubCategoryChecked([]);
     setBrandChecked([]);
     setSelectedPriceRange("");
-  }, [id, selectedCategoryId]);
+  }, [categoryId]);
 
 
   // Fetch featured products on component mount Section Start
