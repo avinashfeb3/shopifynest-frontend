@@ -93,27 +93,15 @@ const Header = () => {
               >
                 Home
               </Link>
-              <Link
-                to="/shop"
-                className="text-lg text-gray-800 hover:text-orange-500"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Mens
-              </Link>
-              <Link
-                to="/shop"
-                className="text-lg text-gray-800 hover:text-orange-500"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Womens
-              </Link>
-              <Link
-                to="/shop"
-                className="text-lg text-gray-800 hover:text-orange-500"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Kids
-              </Link>
+              
+                 {categories.map((category) => {
+              return (
+                <Link key={category._id || category.id} to={`/shop?category=${category._id}`} className="hover:text-orange-500">
+                  {category.name}
+                </Link>
+              );
+            })}
+            
               <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                 <Link className="relative" onClick={() => setIsMenuOpen(false)}>
                   <span className="bg-red-400 text-sm rounded-[50%] flex justify-center items-center text-white absolute left-2 w-6 h-6 -top-4.5">
